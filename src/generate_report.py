@@ -7,12 +7,20 @@ from apiclient import sample_tools
 from oauth2client import client
 
 from adsense_util import get_account_id
+from adsense_db import insert_report_row, init_db
 
 from datetime import datetime
 
+import configparser
+
 MAX_PAGE_SIZE = 10
-# This is the maximum number of obtainable rows for paged reports.
 ROW_LIMIT = 5000
+
+METRICS = ['PAGE_VIEWS', 'AD_REQUESTS',
+           'CLICKS', 'AD_REQUESTS_CTR', 'COST_PER_CLICK',
+           'AD_REQUESTS_RPM', 'EARNINGS']
+
+DIMENSION = ['AD_UNIT_CODE', 'AD_UNIT_NAME']
 
 
 def get_month_start():
@@ -55,10 +63,8 @@ def main(argv):
                 accountId=account_id,
                 startDate=start_date, endDate=end_date,
                 filter=['AD_CLIENT_ID==ca-' + account_id],
-                metric=['PAGE_VIEWS', 'AD_REQUESTS',
-                        'CLICKS', 'AD_REQUESTS_CTR', 'COST_PER_CLICK',
-                        'AD_REQUESTS_RPM', 'EARNINGS'],
-                dimension=['AD_UNIT_CODE', 'AD_UNIT_NAME'],
+                metric=METRICS,
+                dimension=DIMENSION,
                 useTimezoneReporting=True,
                 startIndex=start_index,
                 maxResults=rows_to_obtain).execute()
@@ -68,7 +74,8 @@ def main(argv):
             else:
                 result_all_pages['rows'].extend(result['rows'])
 
-            start_index += len(result['rows'])
+            if 'rows' in result:
+                start_index += len(result['rows'])
 
             # Check to see if we're going to go above the limit and get as many
             # results as we can.
@@ -80,23 +87,35 @@ def main(argv):
             if start_index >= int(result['totalMatchedRows']):
                 break
 
-        print_result(result_all_pages)
+        store_report_in_db(result_all_pages, start_date)
 
     except client.AccessTokenRefreshError:
         print('The credentials have been revoked or expired, please re-run the '
               'application to re-authorize')
 
 
-def print_result(result):
-    for header in result['headers']:
-        print('%25s' % header['name'])
-    print
+def store_report_in_db(result, date):
+    if 'headers' not in result:
+        return False
 
-    if 'rows' in result:
-        for row in result['rows']:
-            for column in row:
-                print('%25s' % column)
-            print
+    if 'rows' not in result:
+        return False
+
+    db = init_db()
+
+    headers = []
+    for header in result['headers']:
+        headers.append(header['name'])
+
+    for row in result['rows']:
+        report_row = {}
+
+        it = 0
+        for metric in headers:
+            report_row[metric.lower()] = row[it]
+            it = it + 1
+
+        insert_report_row(db, report_row, date)
 
 
 if __name__ == '__main__':
