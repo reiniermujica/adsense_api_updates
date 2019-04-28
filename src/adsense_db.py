@@ -56,10 +56,8 @@ def get_user_id(db, ad_unit_code):
 
 def update_user_earnings(db, earnings):
     if find_record(db, earnings):
-        print('update')
         update_record(db, earnings)
     else:
-        print('insert')
         insert_record(db, earnings)
 
     return True
