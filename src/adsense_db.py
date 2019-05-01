@@ -1,6 +1,8 @@
 import configparser
 import pymysql
 
+from datetime import datetime
+
 ADMIN_USER_ID = 1
 
 
@@ -103,6 +105,20 @@ def insert_record(db, record):
                   VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
         values = (record['user_id'], record['month'], record['year'], record['earnings'], record['ad_unit_code'], record['page_views'],
                   record['clicks'], record['ad_requests'], record['ad_requests_ctr'], record['cost_per_click'], record['ad_requests_rpm'])
+
+        cur.execute(sql, values)
+
+        db.commit()
+
+    return True
+
+
+def update_time_mark(db):
+    with db:
+        cur = db.cursor()
+
+        sql = "UPDATE adsense_config SET last_earnings_update = %s"
+        values = (datetime.now())
 
         cur.execute(sql, values)
 

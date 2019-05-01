@@ -7,7 +7,7 @@ from apiclient import sample_tools
 from oauth2client import client
 
 from adsense_util import get_account_id
-from adsense_db import insert_report_row, init_db
+from adsense_db import insert_report_row, init_db, update_time_mark
 
 from datetime import datetime
 
@@ -116,6 +116,8 @@ def store_report_in_db(result, date):
             it = it + 1
 
         insert_report_row(db, report_row, date)
+
+    update_time_mark(db)
 
 
 if __name__ == '__main__':
