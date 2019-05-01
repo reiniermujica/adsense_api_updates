@@ -1,7 +1,7 @@
 import configparser
 import pymysql
 
-from datetime import datetime, timezone
+from datetime import datetime
 import pytz
 
 ADMIN_USER_ID = 1
