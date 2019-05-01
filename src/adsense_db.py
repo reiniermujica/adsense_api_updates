@@ -1,7 +1,8 @@
 import configparser
 import pymysql
 
-from datetime import datetime
+from datetime import datetime, timezone
+import pytz
 
 ADMIN_USER_ID = 1
 
@@ -118,7 +119,7 @@ def update_time_mark(db):
         cur = db.cursor()
 
         sql = "UPDATE adsense_config SET last_earnings_update = %s"
-        values = (datetime.now())
+        values = (datetime.now(pytz.timezone('America/Havana')))
 
         cur.execute(sql, values)
 
