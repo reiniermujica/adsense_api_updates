@@ -24,7 +24,7 @@ def get_db_config():
 def init_db():
     config = get_db_config()
     db = pymysql.connect(config['address'], config['user'],
-                         config['password'], config['db'])
+                         config['password'], config['db'],  port = 32622)
     return db
 
 
